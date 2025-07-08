@@ -77,3 +77,86 @@ FROM layoffs_staging_1
 WHERE row_num > 1;
 
 -- Standardize --
+
+SELECT DISTINCT company, TRIM(company)
+FROM layoffs_staging_1;
+
+UPDATE layoffs_staging_1
+SET company = TRIM(company);
+
+SELECT industry
+FROM layoffs_staging_1
+WHERE industry LIKE 'Crypto%';
+
+UPDATE layoffs_staging_1
+SET industry = 'Crypto'
+WHERE industry LIKE 'Crypto%';
+
+SELECT `date`
+FROM layoffs_staging_1;
+
+-- The column Date Data type is currently text, coverting to date format then to date --
+SELECT  `date`, str_to_date(`date`, '%m/%d/%Y')
+FROM layoffs_staging_1;
+
+UPDATE layoffs_staging_1
+SET `date` = str_to_date(`date`, '%m/%d/%Y');
+
+ALTER TABLE layoffs_staging_1
+MODIFY COLUMN `date` DATE;
+
+
+SELECT DISTINCT country
+FROM layoffs_staging_1;
+
+SELECT *
+FROM layoffs_staging_1
+WHERE country LIKE 'United Sta%';
+
+UPDATE layoffs_staging_1
+SET country = 'United States'
+WHERE country LIKE 'United Sta%';
+
+
+-- Handle Nulls and Blanks --
+SELECT *
+FROM layoffs_staging_1
+WHERE company like ''Bally'%';
+
+SELECT *
+FROM layoffs_staging_1
+WHERE industry  IS NULL
+OR industry = '';
+
+SELECT t1.industry, t2.industry
+FROM layoffs_staging_1 t1
+JOIN layoffs_staging_1 t2
+ON t1.company = t2.company
+WHERE t1.industry IS NULL OR t1.industry = ''
+AND t2.industry IS NOT NULL;
+
+UPDATE layoffs_staging_1
+SET industry = NULL
+WHERE industry = '';
+
+UPDATE layoffs_staging_1 t1
+	JOIN layoffs_staging_1 t2
+	ON t1.company = t2.company
+SET t1.industry = t2.industry
+WHERE t1.industry IS NULL AND t2.industry IS NOT NULL;
+
+-- Company Bally's Interactive is not update because only a row exist --
+
+-- Remove unneeded columns and rows --
+-- removing rows having null values in columns total_laid_off and percentage_laid_off --
+SELECT *
+FROM layoffs_staging_1
+WHERE total_laid_off IS NULL AND percentage_laid_off IS NULL;
+
+DELETE
+FROM layoffs_staging_1
+WHERE total_laid_off IS NULL AND percentage_laid_off IS NULL;
+
+-- Deleting field row_num --
+ALTER TABLE layoffs_staging_1
+DROP COLUMN row_num;
